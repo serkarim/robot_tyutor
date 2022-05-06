@@ -1,6 +1,6 @@
 import cv2
 import numpy
-from project1.letters7x7 import *
+from letters7x7 import *
 import paho.mqtt.client as mqtt
 import random
 import speech_recognition as speech_recog
@@ -23,13 +23,12 @@ def destroy_windows():
 
 
 def recording_audio(filename):
-    # Set chunk size of 1024 samples per data frame
+
 
 
 
     print('ЗВУУУУУУУУУУУУК')
 
-    # Close and terminate the streamobject
 
 
 def check_letter_points():
@@ -381,7 +380,7 @@ while True:
         pass
     flag_s = False
     print('start working')
-    while flag_s != True:
+    while flag_s != True:#2 режим
         message = ''
         squares_now, image = create_windows(cap)
         contours, mask = create_mask_and_contour(image)
