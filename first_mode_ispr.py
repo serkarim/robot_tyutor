@@ -1,6 +1,6 @@
 import cv2
 import numpy
-from project1.letters7x7 import *
+from letters7x7 import *
 import paho.mqtt.client as mqtt
 import random
 
