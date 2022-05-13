@@ -13,7 +13,7 @@ def client_on_message(client, userdata, msg):  # функция для полу�
         if message=='0':
             phrase='Молодец!Правильно!'
         elif message=='1':
-            phrase='Молодец!НЕПравильно!'
+            phrase='Неправильно!Попробуй еще раз'
     if str(msg.topic)=='serkarim/2game':
         phrase='Это буква '+str(message)
     message=''
