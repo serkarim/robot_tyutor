@@ -7,10 +7,8 @@ import speech_recognition as speech_recog
 
 
 i, j = 0, 0
-letters = ['О', 'И', 'М', 'Г', 'Й', 'З', 'К', 'Е', 'Б', 'В', 'А', 'П', 'Н', 'Д', 'Ж']
-mas = [letter_o, letter_i, letter_m, letter_g, letter_ji, letter_z, letter_k, letter_e, letter_b, letter_v, letter_a,
-       letter_p ,
-       letter_n, letter_d,letter_j]
+letters = [  'В', 'А', 'Н', 'Д', 'Ж']
+mas = [letter_v, letter_a, letter_n,letter_d,letter_j]
 
 
 def destroy_windows():
@@ -36,17 +34,17 @@ def check_letter_points():
               [0, 0, 0, 0, 0, 0, 0],
               [0, 0, 0, 0, 0, 0, 0],
               [0, 0, 0, 0, 0, 0, 0]]
-    z = 4 * h // 15 + 0.5 * h // 15
+    z = 4 * h // 15 + 0.75* h // 15
     row = 0
     count_black = 0
     for i in range(7):
-        x = 4 * w // 15 + 0.5 * w // 15
+        x = 4 * w // 15 + 0.75* w // 15
         column = 0
         for i in range(7):
             pixel = crop_rotated2[int(z), int(x)]
             cv2.circle(crop_rotated2, (int(x), int(z)), 10, (int(pixel[0]), int(pixel[1]), int(pixel[2])), -1)
             cv2.circle(crop_rotated2, (int(x), int(z)), 10, (int(255), int(0), int(0)), 2)
-            if int(pixel[0]) < 150 and int(pixel[1]) < 150 and int(pixel[2]) < 150:
+            if int(pixel[0]) < 200 and int(pixel[1]) < 150 and int(pixel[2]) < 200:
                 letter[int(row)][int(column)] = 1
                 count_black += 1
             x += w // 15
@@ -56,24 +54,22 @@ def check_letter_points():
     return letter, count_black
 
 
-def find_letter():  # распознаем букву
+def find_letter2():  # распознаем букву
     flag = False
     message_current = ''
 
     '''Определяем букву, считываем кваддратики 7 на 7( объединяющая функция)'''
-    global i, j, message, last_message, last_letter, letter_now,flag_r
+    global i, j, message, last_message, last_letter, letter_now
 
     letter, black_points = check_letter_points()
-    print('gjhlkl,',letter,letter_correct_massiv)
     if letter_correct_massiv == letter:
         i += 1
         j = 0
         print('Молодец!правильно!')
         cv2.putText(image, 'Молодец! Правильно!', (30, 30), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0))
-        flag_r=True
         # if last_letter != letter_correct:
         #     last_letter = letter_correct
-    else:
+    else :
         j += 1
         i = 0
         print('Неправильно!')
@@ -88,32 +84,29 @@ def find_letter():  # распознаем букву
                 letter_now = letters[i]
                 # if last_letter != letters[i]:
                 #     last_letter = letters[i]
-    #
-    # if i > 10:
-    #     message_current = '1'
-    #     flag = True
-    #     i = 0
-    if j > 10:
-        message_current = '0'
+
+
+    if i > 10:
         flag = True
+        i = 0
+    if j > 10:
+        flag = False
         j = 0
     print("!!!!!!!!!!", last_letter, letter_now)
     if last_letter != letter_now and letter_now in letters:
-        recording_audio(filename=1)
         if letter_correct == letter_now:
-            client.publish('serkarim/say_otvet', '0')
+            client.publish('tutor/say_otvet', '0')
 
         else:
-            client.publish('serkarim/camera_robot1', 'drive')
+            client.publish('tutor/camera_robot1', 'drive')
 
-            client.publish('serkarim/2game', str(letter_now))
+            client.publish('tutor/2game', str(letter_now))
     last_letter=letter_now
     # if str(last_letter) != str(letter_now) and last_message==message5:
     #     client.publish(topic, message5)
-    print(i, j)
     print('points:' + str(black_points))
 
-    return flag,flag_r
+    return flag
 
 
 def draw_circles(w1, h1, w2, h2, w3, h3, w4, h4, square1, square2, square3, square4):
@@ -170,44 +163,42 @@ def black_squares(w1, h1, w2, h2, w3, h3, w4, h4, square1, square2, square3, squ
     if square4[0] < 160 and square4[1] < 160 and square4[2] < 160:
         squares_now[3] = 1
         cv2.putText(crop_rotated, 'black', (w4, h4), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0))
-def find_letter2():  # распознаем букву
+def find_letter():  # распознаем букву
     flag = False
     message_current = ''
-
     '''Определяем букву, считываем кваддратики 7 на 7( объединяющая функция)'''
-    global i, j, message, last_message, last_letter, letter_now,flag_r,flag_mode
+    global i, j, message, last_message, last_letter, letter_now,flag_r
     letter, black_points = check_letter_points()
-    # print('gfdfgdf',letter,letter_correct_massiv)
     if letter_correct_massiv == letter:
         i += 1
+        message_current='0'
         j = 0
         print('Молодец!правильно!')
         cv2.putText(image, 'Молодец! Правильно!', (30, 30), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0))
-        flag_r=True
         letter_now=letter_correct
-        message_current='0'
-        flag_mode=True
         # if last_letter != letter_correct:
         #     last_letter = letter_correct
     else:
         j += 1
+        message_current='1'
+
         i = 0
         print('Неправильно!')
         cv2.putText(image, 'Неправильно!', (30, 30), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0))
         for i in range(len(mas)):
             if letter == mas[i]:
+                letter_now = letters[i]
                 print('it is letter ' + letters[i])
                 cv2.putText(image,
                             'Неправильно,это буква ' + letters[i] + ', положи  букву   ' + str(
                                 letter_correct) + '     пожалуйста',
                             (30, 60), cv2.FONT_HERSHEY_COMPLEX, 0.75, (0, 0, 255))
-                letter_now = letters[i]
                 # if last_letter != letters[i]:
                 #     last_letter = letters[i]
-
+    print(letter_now)
     if i > 10:
         message_current = '1'
-        flag = True
+        flag_r= True
         i = 0
     if j > 10:
         message_current = '0'
@@ -215,7 +206,7 @@ def find_letter2():  # распознаем букву
         j = 0
     print("!!!!!!!!!!",last_letter, letter_now)
     if last_letter != letter_now:
-        client.publish('serkarim/say_otvet', str(message_current))
+        client.publish('tutor/say_otvet', str(message_current))
         last_message = message_current
         last_letter = letter_now
 
@@ -223,6 +214,7 @@ def find_letter2():  # распознаем букву
     #     client.publish(topic, message5)
     print(i, j)
     print('points:' + str(black_points))
+
     return flag,flag_r
 
 def work_with_contour():
@@ -241,6 +233,7 @@ def create_windows(cap):
     squares_now = [0, 0, 0, 0]
     isRead, image = cap.read()
     image = cv2.flip(image, 1)
+
     return squares_now, image
 
 
@@ -252,7 +245,7 @@ def client_on_message(client, userdata, msg):  # функция для полу�
     message = msg.payload.decode()
     topic_msg = msg.topic
     # if message=='ok':
-    #     client.publish('serkarim/say_otvet','repite')
+    #     client.publish('tutor/say_otvet','repite')
     print(str(message))
 
 
@@ -323,117 +316,76 @@ H_up_blue, S_up_blue, V_up_blue, H_down_blue, S_down_blue, V_down_blue = read_fi
 HSV_up = numpy.array([H_up_blue, S_up_blue, V_up_blue])
 HSV_down = numpy.array([H_down_blue, S_down_blue, V_down_blue])
 
-topic = 'serkarim/say_otvet'
+topic = 'tutor/say_otvet'
 key_stop = 32
 last_letter = ''
 word = 0
 key = 0
 letter_now = ''
-global message1
-topic2 = 'serkarim/say_otvet'
+topic2 = 'tutor/say_otvet'
 letter = ''
 hostname = 'mqtt.pi40.ru'  # сервер
 client = mqtt.Client()  # клиент mqtt
-client.username_pw_set('serkarim', 'Serkarim_2009')
+client.username_pw_set('tutor', 'password1')
 client.connect(hostname, 1883, 60)
-topic1 = 'serkarim/r_letter'
-client.subscribe('serkarim/r_letter')
-client.subscribe('serkarim/done')
-client.subscribe('serkarim/scan')
-client.subscribe('serkarim/work')
-client.subscribe('serkarim/otvet_robot')
-client.subscribe('serkarim/camera_robot1')
+topic1 = 'tutor/r_letter'
+client.subscribe('tutor/r_letter')
+client.subscribe('tutor/done')
+client.subscribe('tutor/scan')
+client.subscribe('tutor/work')
+client.subscribe('tutor/otvet_robot')
+client.subscribe('tutor/camera_robot')
+client.subscribe('tutor/tg')
 
-
-client.subscribe('serkarim/otvet_letter')
-
+client.subscribe('tutor/otvet_letter')
 client.on_message = client_on_message  # заходим в mqtt под своим userом
 client.loop_start()
 letter_correct_massiv = ''
 # Resize the image using resize() method
-
 topic_msg = ''
 message = ''
 last_message = ''
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 flag_mode=False
 flag = False
 normal_squares = [1, 1, 1, 0]
 print(HSV_down, HSV_up)
 flag_r=False
 
-number = random.randint(0, len(letters) - 1)
-letter_correct = letters[number]
+
+while topic_msg!='tutor/tg':
+    pass
 print('prinyal letter')
 
-while topic_msg != 'serkarim/done' and message != '1':
-    pass
-for i in range(len(letters)):
-    if letter_correct == letters[i]:
-        letter_correct_massiv = mas[i]
-client.publish('serkarim/say_letter', str(letter_correct))
-while topic_msg != 'serkarim/otvet_letter' and message != 'ok':
-    pass
-while True:
-
-
-
-    while topic_msg != 'serkarim/otvet_letter' and message != 'ok':
+if message=='1':
+    print('first')
+    flag = False
+    normal_squares = [1, 1, 1, 0]
+    print(HSV_down, HSV_up)
+    number = random.randint(0, len(letters) - 1)
+    letter_correct = letters[number]
+    print('prinyal letter')
+    client.publish('tutor/start','start_mode1')
+    while topic_msg != 'tutor/done' and message != '1':
         pass
-    flag_s = False
-    print('start working')
-    print('1 gamemode')
-
-    while flag_s != True:#1 режим
-        message = ''
-        squares_now, image = create_windows(cap)
-        contours, mask = create_mask_and_contour(image)
-        for contour in contours:
-            x, y, w, h = cv2.boundingRect(contour)
-            if w > 100 and h > 100:
-                new_coords, approx, crop = create_approx()
-                if len(approx) == 4:
-                    print(approx[0][0])
-                    crop_rotated = create_crop_rotated(image)
-                    cv2.imshow('window_rotated', crop_rotated)
-                    cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
-                    w, h, crop_rotated2 = work_with_contour()
-                    flag_s,flag_r= find_letter2()  # Flag = True
-                    print('flag_s: ', flag_s)
-                    cv2.imshow('crop_rotated', crop_rotated2)
-                    cv2.imshow('crop', crop_rotated)
-        cv2.imshow('window_mask', mask)
-        cv2.imshow('window', image)
-        cv2.waitKey(20)
-        message = ''
-        cv2.imshow('window', image)
-        # key = cv2.waitKey(20)
-    if flag_r==True:
-        flag_r=False
-        client.publish('serkarim/camera_turn_head', '1')
-
-        number = random.randint(0, len(letters) - 1)
-        letter_correct = letters[number]
-        while topic_msg != 'serkarim/done' and message != '1':
+    client.publish('tutor/say_letter', str(letter_correct))
+    for i in range(len(letters)):
+        if letter_correct == letters[i]:
+            letter_correct_massiv = mas[i]
+    while True:
+        while topic_msg != 'tutor/otvet_letter' and message != 'ok':
             pass
-        for i in range(len(letters)):
-            if letter_correct == letters[i]:
-                letter_correct_massiv = mas[i]
-        client.publish('serkarim/say_letter', str(letter_correct))
-
-        while topic_msg != 'serkarim/otvet_robot' and message != 'ok':
-            pass
-        message=''
+        message = ''
         flag_s = False
-        print('start working')
-        print('2 gamemode')
+        flag_r = False
         while flag_r != True:
             message = ''
             squares_now, image = create_windows(cap)
             contours, mask = create_mask_and_contour(image)
             for contour in contours:
                 x, y, w, h = cv2.boundingRect(contour)
-                if w > 100 and h > 100:
+
+                if w > 50 and h > 50:
                     new_coords, approx, crop = create_approx()
                     if len(approx) == 4:
                         print(approx[0][0])
@@ -441,8 +393,8 @@ while True:
                         cv2.imshow('window_rotated', crop_rotated)
                         cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
                         w, h, crop_rotated2 = work_with_contour()
-                        flag_s,flag_r = find_letter()  # Flag = True
-
+                        crop_rotated2=cv2.resize(crop_rotated2,350,350)
+                        flag_s, flag_r = find_letter()  # Flag = True
                         print('flag_s: ', flag_s)
                         cv2.imshow('crop_rotated', crop_rotated2)
                         cv2.imshow('crop', crop_rotated)
@@ -451,6 +403,77 @@ while True:
             cv2.waitKey(20)
             message = ''
             cv2.imshow('window', image)
-    flag_r=False
             # key = cv2.waitKey(20)
-cap.release()
+        client.publish('tutor/start','end')
+elif message=='2':
+    flag = False
+    normal_squares = [1, 1, 1, 0]
+    print(HSV_down, HSV_up)
+    client.publish('tutor/start','start_mode2')
+
+    print('prinyal letter')
+    while topic_msg != 'tutor/r_letter':
+        pass
+    letter_correct = message
+    for i in range(len(letters)):
+        if letter_correct == letters[i]:
+            letter_correct_massiv = mas[i]
+    print(letter_correct_massiv)
+
+    client.publish('tutor/say_letter', str(letter_correct))
+    while topic_msg != 'tutor/otvet_letter' and message != 'ok':
+        pass
+    cap=cv2.VideoCapture(0)
+    while True:
+        while topic_msg != 'tutor/otvet_robot' and message != 'ok':
+            pass
+        message = ''
+        squares_now, image = create_windows(cap)
+
+        flag_s = False
+        print('start working')
+        while flag_s != True:
+            norm_contour = []
+            rast_spisok = []
+            message = ''
+            squares_now, image = create_windows(cap)
+            contours, mask = create_mask_and_contour(image)
+            for contour in contours:
+                x, y, w, h = cv2.boundingRect(contour)
+                if w > 30 and h > 30:
+                    new_coords, approx, crop = create_approx()
+                    if len(approx) == 4:
+                        norm_contour.append(contour)
+                        # print(norm_contour,'sdcsdcsdcdcsdcsdcs')
+            if norm_contour != []:
+                for c in norm_contour:
+                    x, y, w, h = cv2.boundingRect(c)
+                    rast = abs(320 - x), abs(240 - y)
+
+                    rast_spisok.append(rast)
+                # print(rast_spisok,'dcwedcwsdc')
+            if rast_spisok != []:
+                number = rast_spisok.index(min(rast_spisok))
+                contour = norm_contour[number]
+                # print(norm_contour,'norm_contour')
+
+                # print(approx[0][0])
+                crop_rotated = create_crop_rotated(image)
+
+                cv2.imshow('window_rotated', crop_rotated)
+                cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
+                w, h, crop_rotated2 = work_with_contour()
+                flag_s = find_letter2()  # Flag = True
+
+                print('flag_s: ', flag_s)
+                cv2.imshow('crop_rotated', crop_rotated2)
+                cv2.imshow('crop', crop_rotated)
+            cv2.imshow('window_mask', mask)
+            cv2.imshow('window', image)
+            cv2.waitKey(20)
+            message = ''
+            cv2.imshow('window', image)
+            # key = cv2.waitKey(20)
+
+    cap.release()
+

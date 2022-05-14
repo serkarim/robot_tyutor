@@ -5,8 +5,8 @@ import paho.mqtt.client as mqtt
 import random
 
 i, j = 0, 0
-letters = ['О', 'И', 'М', 'Г', 'Й', 'З', 'К', 'Е', 'Б', 'В', 'А', 'П', 'Н', 'Д', 'Ж']
-mas = [letter_o, letter_i, letter_m, letter_g, letter_ji, letter_z, letter_k, letter_e, letter_b, letter_v, letter_a, letter_p,
+letters = [ 'З', 'К', 'Е', 'Б', 'В', 'А', 'П', 'Н', 'Д', 'Ж']
+mas = [ letter_z, letter_k, letter_e, letter_b, letter_v, letter_a, letter_p,
        letter_n,letter_d,
         letter_j]
 
@@ -55,17 +55,21 @@ def find_letter():  # распознаем букву
     message_current = ''
 
     '''Определяем букву, считываем кваддратики 7 на 7( объединяющая функция)'''
-    global i, j, message, last_message, last_letter, letter_now
+    global i, j, message, last_message, last_letter, letter_now,flag_r
     letter, black_points = check_letter_points()
     if letter_correct_massiv == letter:
         i += 1
+        message_current='0'
         j = 0
         print('Молодец!правильно!')
         cv2.putText(image, 'Молодец! Правильно!', (30, 30), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0))
+        letter_now=letter_correct
         # if last_letter != letter_correct:
         #     last_letter = letter_correct
     else:
         j += 1
+        message_current='1'
+
         i = 0
         print('Неправильно!')
         cv2.putText(image, 'Неправильно!', (30, 30), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0))
@@ -82,7 +86,7 @@ def find_letter():  # распознаем букву
 
     if i > 10:
         message_current = '1'
-        flag = True
+        flag_r= True
         i = 0
     if j > 10:
         message_current = '0'
@@ -98,7 +102,7 @@ def find_letter():  # распознаем букву
     #     client.publish(topic, message5)
     print(i, j)
     print('points:' + str(black_points))
-    return flag
+    return flag,flag_r
 
 
 def draw_circles(w1, h1, w2, h2, w3, h3, w4, h4, square1, square2, square3, square4):
@@ -280,7 +284,7 @@ client.on_message = client_on_message  # заходим в mqtt под свои�
 client.loop_start()
 letter_correct_massiv = ''
 # Resize the image using resize() method
-
+flag_r=False
 topic_msg = ''
 message = ''
 last_message = ''
@@ -301,9 +305,10 @@ for i in range(len(letters)):
 while True:
     while topic_msg != 'serkarim/otvet_letter' and message != 'ok':
         pass
+    message=''
     flag_s = False
-    print('start working')
-    while flag_s != True:
+    flag_r=False
+    while flag_r != True:
         message = ''
         squares_now, image = create_windows(cap)
         contours, mask = create_mask_and_contour(image)
@@ -319,7 +324,7 @@ while True:
                     cv2.imshow('window_rotated', crop_rotated)
                     cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
                     w, h, crop_rotated2 = work_with_contour()
-                    flag_s = find_letter()  # Flag = True
+                    flag_s,flag_r = find_letter()  # Flag = True
                     print('flag_s: ', flag_s)
                     cv2.imshow('crop_rotated', crop_rotated2)
                     cv2.imshow('crop', crop_rotated)

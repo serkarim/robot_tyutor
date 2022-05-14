@@ -77,7 +77,7 @@ def find_letter():  # распознаем букву
         cv2.putText(image, 'Молодец! Правильно!', (30, 30), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0))
         # if last_letter != letter_correct:
         #     last_letter = letter_correct
-    elif letter_correct_massiv != letter and letter in letters :
+    else :
         j += 1
         i = 0
         print('Неправильно!')
@@ -92,10 +92,7 @@ def find_letter():  # распознаем букву
                 letter_now = letters[i]
                 # if last_letter != letters[i]:
                 #     last_letter = letters[i]
-    else:
-        i=0
-        j=0
-    print(i, j)
+
 
     if i > 10:
         flag = True
@@ -312,10 +309,12 @@ cap = cv2.VideoCapture(0)
 flag = False
 normal_squares = [1, 1, 1, 0]
 print(HSV_down, HSV_up)
-number = random.randint(0, len(letters) - 1)
-letter_correct = letters[number]
+
 print('prinyal letter')
 client.publish('serkarim/camera_turn_head', '1')
+while topic_msg != 'serkarim/r_letter':
+    pass
+letter_correct = message
 for i in range(len(letters)):
     if letter_correct == letters[i]:
         letter_correct_massiv = mas[i]

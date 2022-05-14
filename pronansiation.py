@@ -7,14 +7,14 @@ def client_on_message(client, userdata, msg):  # функция для полу�
     global phrase
     message = msg.payload.decode()
     print(message)
-    if str(msg.topic)== 'serkarim/say_letter':
+    if str(msg.topic)== 'tutor/say_letter':
         phrase='Покажи, пожалуйста букву'+str(message)
-    if str(msg.topic) == 'serkarim/say_otvet':
+    if str(msg.topic) == 'tutor/say_otvet':
         if message=='0':
             phrase='Молодец!Правильно!'
         elif message=='1':
             phrase='Неправильно!Попробуй еще раз'
-    if str(msg.topic)=='serkarim/2game':
+    if str(msg.topic)=='tutor/2game':
         phrase='Это буква '+str(message)
     message=''
     if phrase!=old_phrase:
@@ -22,7 +22,7 @@ def client_on_message(client, userdata, msg):  # функция для полу�
     if text!='':
         engine.say(text)
         engine.runAndWait()
-        client.publish('serkarim/otvet_letter','ok')
+        client.publish('tutor/otvet_letter','ok')
         old_phrase=''
         phrase=''
         text = ''
@@ -39,13 +39,13 @@ old_phrase=''
 old_message=''
 hostname = 'mqtt.pi40.ru'  # сервер
 client = mqtt.Client()  # клиент mqtt
-client.username_pw_set('serkarim', 'Serkarim_2009')
+client.username_pw_set('tutor', 'password1')
 client.connect(hostname, 1883, 60)
-client.subscribe('serkarim/say_otvet')
-client.subscribe('serkarim/return')
+client.subscribe('tutor/say_otvet')
+client.subscribe('tutor/return')
 
-client.subscribe('serkarim/say_letter')# заходим в mqtt под своим userом
-client.subscribe('serkarim/2game')
+client.subscribe('tutor/say_letter')# заходим в mqtt под своим userом
+client.subscribe('tutor/2game')
 client.on_message = client_on_message # подключаемся к mqtt
 client.loop_forever()
  # подписываемся на топик робота
