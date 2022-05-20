@@ -3,8 +3,6 @@ import numpy
 from letters7x7 import *
 import paho.mqtt.client as mqtt
 import random
-import speech_recognition as speech_recog
-
 
 i, j = 0, 0
 letters = [  'В', 'А', 'Н', 'Д', 'Ж']
@@ -59,11 +57,13 @@ def find_letter2():  # распознаем букву
     message_current = ''
 
     '''Определяем букву, считываем кваддратики 7 на 7( объединяющая функция)'''
-    global i, j, message, last_message, last_letter, letter_now
+    global i, j, message, last_message, last_letter, letter_now,flag_s
 
     letter, black_points = check_letter_points()
     if letter_correct_massiv == letter:
         i += 1
+        flag_s=True
+        letter_now=letter_correct
         j = 0
         print('Молодец!правильно!')
         cv2.putText(image, 'Молодец! Правильно!', (30, 30), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0))
@@ -76,12 +76,13 @@ def find_letter2():  # распознаем букву
         cv2.putText(image, 'Неправильно!', (30, 30), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0))
         for i in range(len(mas)):
             if letter == mas[i]:
+                letter_now = letters[i]
+
                 print('it is letter ' + letters[i])
                 cv2.putText(image,
                             'Неправильно,это буква ' + letters[i] + ', положи  букву   ' + str(
                                 letter_correct) + '     пожалуйста',
                             (30, 60), cv2.FONT_HERSHEY_COMPLEX, 0.75, (0, 0, 255))
-                letter_now = letters[i]
                 # if last_letter != letters[i]:
                 #     last_letter = letters[i]
 
@@ -106,7 +107,7 @@ def find_letter2():  # распознаем букву
     #     client.publish(topic, message5)
     print('points:' + str(black_points))
 
-    return flag
+    return flag,flag_s
 
 
 def draw_circles(w1, h1, w2, h2, w3, h3, w4, h4, square1, square2, square3, square4):
@@ -171,6 +172,8 @@ def find_letter():  # распознаем букву
     letter, black_points = check_letter_points()
     if letter_correct_massiv == letter:
         i += 1
+        flag_r= True
+
         message_current='0'
         j = 0
         print('Молодец!правильно!')
@@ -198,7 +201,6 @@ def find_letter():  # распознаем букву
     print(letter_now)
     if i > 10:
         message_current = '1'
-        flag_r= True
         i = 0
     if j > 10:
         message_current = '0'
@@ -316,19 +318,18 @@ H_up_blue, S_up_blue, V_up_blue, H_down_blue, S_down_blue, V_down_blue = read_fi
 HSV_up = numpy.array([H_up_blue, S_up_blue, V_up_blue])
 HSV_down = numpy.array([H_down_blue, S_down_blue, V_down_blue])
 
-topic = 'tutor/say_otvet'
-key_stop = 32
+# topic = 'tutor/say_otvet'
 last_letter = ''
 word = 0
 key = 0
 letter_now = ''
-topic2 = 'tutor/say_otvet'
+# topic2 = 'tutor/say_otvet'
 letter = ''
 hostname = 'mqtt.pi40.ru'  # сервер
 client = mqtt.Client()  # клиент mqtt
 client.username_pw_set('tutor', 'password1')
 client.connect(hostname, 1883, 60)
-topic1 = 'tutor/r_letter'
+# topic1 = 'tutor/r_letter'
 client.subscribe('tutor/r_letter')
 client.subscribe('tutor/done')
 client.subscribe('tutor/scan')
@@ -341,7 +342,6 @@ client.subscribe('tutor/otvet_letter')
 client.on_message = client_on_message  # заходим в mqtt под своим userом
 client.loop_start()
 letter_correct_massiv = ''
-# Resize the image using resize() method
 topic_msg = ''
 message = ''
 last_message = ''
@@ -388,12 +388,11 @@ if message=='1':
                 if w > 50 and h > 50:
                     new_coords, approx, crop = create_approx()
                     if len(approx) == 4:
-                        print(approx[0][0])
+                        # print(approx[0][0])
                         crop_rotated = create_crop_rotated(image)
                         cv2.imshow('window_rotated', crop_rotated)
                         cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
                         w, h, crop_rotated2 = work_with_contour()
-                        crop_rotated2=cv2.resize(crop_rotated2,350,350)
                         flag_s, flag_r = find_letter()  # Flag = True
                         print('flag_s: ', flag_s)
                         cv2.imshow('crop_rotated', crop_rotated2)
@@ -403,8 +402,8 @@ if message=='1':
             cv2.waitKey(20)
             message = ''
             cv2.imshow('window', image)
-            # key = cv2.waitKey(20)
-        client.publish('tutor/start','end')
+        if flag_r == True:
+            client.publish('tutor/start', 'end')
 elif message=='2':
     flag = False
     normal_squares = [1, 1, 1, 0]
@@ -456,24 +455,26 @@ elif message=='2':
                 number = rast_spisok.index(min(rast_spisok))
                 contour = norm_contour[number]
                 # print(norm_contour,'norm_contour')
-
+                new_coords, approx, crop = create_approx()
                 # print(approx[0][0])
-                crop_rotated = create_crop_rotated(image)
+                if len(approx) == 4:
+                    crop_rotated = create_crop_rotated(image)
 
-                cv2.imshow('window_rotated', crop_rotated)
-                cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
-                w, h, crop_rotated2 = work_with_contour()
-                flag_s = find_letter2()  # Flag = True
+                    cv2.imshow('window_rotated', crop_rotated)
+                    cv2.drawContours(image, contour, -1, (0, 255, 0), 3)
+                    w, h, crop_rotated2 = work_with_contour()
+                    flag_s = find_letter2()  # Flag = True
 
-                print('flag_s: ', flag_s)
-                cv2.imshow('crop_rotated', crop_rotated2)
-                cv2.imshow('crop', crop_rotated)
+                    print('flag_s: ', flag_s)
+                    cv2.imshow('crop_rotated', crop_rotated2)
+                    cv2.imshow('crop', crop_rotated)
             cv2.imshow('window_mask', mask)
             cv2.imshow('window', image)
             cv2.waitKey(20)
             message = ''
             cv2.imshow('window', image)
             # key = cv2.waitKey(20)
-
-    cap.release()
-
+        if flag_s == True:
+            client.publish('tutor/start', 'end')
+            break
+cap.release()
